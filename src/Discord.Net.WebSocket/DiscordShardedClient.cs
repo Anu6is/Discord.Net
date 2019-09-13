@@ -37,6 +37,11 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public override IReadOnlyCollection<RestVoiceRegion> VoiceRegions => _shards[0].VoiceRegions;
 
+        /// <summary>
+        ///     Provides access to a REST-only client with a shared state from this client.
+        /// </summary>
+        public override DiscordSocketRestClient Rest => _shards[0].Rest;
+
         /// <summary> Creates a new REST/WebSocket Discord client. </summary>
         public DiscordShardedClient() : this(null, new DiscordSocketConfig()) { }
         /// <summary> Creates a new REST/WebSocket Discord client. </summary>
@@ -80,7 +85,8 @@ namespace Discord.WebSocket
             }
         }
         private static API.DiscordSocketApiClient CreateApiClient(DiscordSocketConfig config)
-            => new API.DiscordSocketApiClient(config.RestClientProvider, config.WebSocketProvider, DiscordRestConfig.UserAgent);
+            => new API.DiscordSocketApiClient(config.RestClientProvider, config.WebSocketProvider, DiscordRestConfig.UserAgent,
+                rateLimitPrecision: config.RateLimitPrecision);
 
         internal override async Task OnLoginAsync(TokenType tokenType, string token)
         {

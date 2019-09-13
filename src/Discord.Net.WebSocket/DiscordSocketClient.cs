@@ -44,8 +44,10 @@ namespace Discord.WebSocket
         private RestApplication _applicationInfo;
         private bool _isDisposed;
 
-        /// <summary> Provides access to a REST-only client with a shared state from this client. </summary>
-        public DiscordSocketRestClient Rest { get; }
+        /// <summary>
+        ///     Provides access to a REST-only client with a shared state from this client.
+        /// </summary>
+        public override DiscordSocketRestClient Rest { get; }
         /// <summary> Gets the shard of of this client. </summary>
         public int ShardId { get; }
         /// <summary> Gets the current connection state of this client. </summary>
@@ -174,7 +176,8 @@ namespace Discord.WebSocket
             _largeGuilds = new ConcurrentQueue<ulong>();
         }
         private static API.DiscordSocketApiClient CreateApiClient(DiscordSocketConfig config)
-            => new API.DiscordSocketApiClient(config.RestClientProvider, config.WebSocketProvider, DiscordRestConfig.UserAgent, config.GatewayHost);
+            => new API.DiscordSocketApiClient(config.RestClientProvider, config.WebSocketProvider, DiscordRestConfig.UserAgent, config.GatewayHost,
+                rateLimitPrecision: config.RateLimitPrecision);
         /// <inheritdoc />
         internal override void Dispose(bool disposing)
         {
@@ -323,7 +326,7 @@ namespace Discord.WebSocket
             {
                 var user = SocketGlobalUser.Create(this, state, model);
                 user.GlobalUser.AddRef();
-                user.Presence = new SocketPresence(UserStatus.Online, null);
+                user.Presence = new SocketPresence(UserStatus.Online, null, null);
                 return user;
             });
         }
@@ -431,7 +434,7 @@ namespace Discord.WebSocket
                 return;
             var status = Status;
             var statusSince = _statusSince;
-            CurrentUser.Presence = new SocketPresence(status, Activity);
+            CurrentUser.Presence = new SocketPresence(status, Activity, null);
 
             var gameModel = new GameModel();
             // Discord only accepts rich presence over RPC, don't even bother building a payload
@@ -1380,7 +1383,7 @@ namespace Discord.WebSocket
                                     if (!ExclusiveBulkDelete.HasValue)
                                     {
                                         await _gatewayLogger.WarningAsync("A bulk delete event has been received, but the event handling behavior has not been set. " +
-                                            "To supress this message, set the ExclusiveBulkDelete configuration property. " +
+                                            "To suppress this message, set the ExclusiveBulkDelete configuration property. " +
                                             "This message will appear only once.");
                                         ExclusiveBulkDelete = false;
                                     }
